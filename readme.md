@@ -2,13 +2,13 @@
 
 # Picozig  
 
-🚀 **Ultra-fast HTTP parser in pure Zig**  
+🚀 **Ultra-fast HTTP request parser in pure Zig**  
 
 Inspired by [picohttpparser](https://github.com/h2o/picohttpparser), this is a partial translation optimized for speed and simplicity.  
 
 ### ⚡ Performance  
-- Parses **~4 million headers per second** (without SSE4)  
-- Outperforms the original picohttpparser (~3.2M headers/sec)  
+- Parses **~4 million requests per second** (without SSE4)  
+- Outperforms the original picohttpparser (~3.2M headers/sec without SSE4)  
 - Implemented in **pure Zig**, with **zero system calls**  
 
 ### ✨ Features  
