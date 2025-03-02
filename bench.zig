@@ -1,5 +1,4 @@
 const std = @import("std");
-
 const picozig = @import("./picozig.zig");
 
 const REQ =
@@ -19,29 +18,42 @@ const REQ =
     "\r\n";
 
 pub fn main() !void {
-    // Pointer variables to store parsed values
-    var method: [*c]const u8 = undefined;
-    var path: [*c]const u8 = undefined;
-
-    var minor_version: c_int = 0;
-
     // Headers array
     var headers: [32]picozig.Header = undefined;
-    var num_headers: usize = 0;
-    var ret: c_int = 0;
+
+    // Create HttpParams structure
+    const httpParams = picozig.HttpParams{
+        .method = "",
+        .path = "",
+        .minor_version = 0,
+        .num_headers = 0,
+        .bytes_read = 0,
+    };
+
+    // Create HttpRequest structure
+    var httpRequest = picozig.HttpRequest{
+        .params = httpParams,
+        .headers = &headers,
+        .body = "",
+    };
+
+    var ret: i32 = 0;
 
     const startTime = std.time.milliTimestamp();
 
     const count = 10000000;
     for (0..count) |_| {
-        num_headers = headers.len;
-        ret = picozig.parseRequest(REQ, &method, &path, &minor_version, &headers, &num_headers);
+        // Reset the number of headers for each iteration
+        httpRequest.params.num_headers = headers.len;
+
+        // Call with new signature
+        ret = picozig.parseRequest(REQ, &httpRequest);
 
         //print header count
-        //  std.debug.print("Header count: {s}\n", .{headers[0].value});
+        //std.debug.print("Header count: {s}\n", .{headers[0].value});
 
         std.mem.doNotOptimizeAway(ret);
-        std.debug.assert(ret == @as(c_int, @intCast(REQ.len)));
+        std.debug.assert(ret == REQ.len);
     }
 
     const endTime = std.time.milliTimestamp();

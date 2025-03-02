@@ -8,7 +8,7 @@ pub const Header = struct {
     value: []const u8,
 };
 
-const ParseError = error{
+pub const ParseError = error{
     Incomplete,
     BadRequest,
 };
@@ -225,14 +225,15 @@ fn parseHeaders(buffer: []const u8, headers: []Header) ParseError!struct { num_h
     };
 }
 
-/// Parses an HTTP request
-fn parseHttpRequest(buffer: []const u8, headers: []Header) !struct {
+pub const HttpParams = struct {
     method: []const u8,
     path: []const u8,
     minor_version: i32,
     num_headers: usize,
     bytes_read: usize,
-} {
+};
+
+fn parseHttpRequest(buffer: []const u8, headers: []Header) !HttpParams {
     var buf = buffer;
 
     // Skip first empty line (some clients add CRLF after POST content)
@@ -271,26 +272,25 @@ fn parseHttpRequest(buffer: []const u8, headers: []Header) !struct {
     };
 }
 
+pub const HttpRequest = struct {
+    params: HttpParams,
+    headers: [*]Header,
+    body: []const u8,
+};
+
 /// Parses an HTTP request using picohttp-style API
 pub fn parseRequest(
     buf: []const u8,
-    method: *[*c]const u8,
-    path: *[*c]const u8,
-    minor_version: *c_int,
-    headers: [*]Header,
-    num_headers: *usize,
-) c_int {
-    const result = parseHttpRequest(buf, headers[0..100]) catch |err| {
+    httpReqest: *HttpRequest,
+) i32 {
+    const params = parseHttpRequest(buf, httpReqest.headers[0..100]) catch |err| {
         return switch (err) {
             ParseError.Incomplete => -2,
             ParseError.BadRequest => -1,
         };
     };
 
-    method.* = result.method.ptr;
-    path.* = result.path.ptr;
-    minor_version.* = result.minor_version;
-    num_headers.* = result.num_headers;
+    httpReqest.params = params;
 
-    return @intCast(result.bytes_read);
+    return @intCast(params.bytes_read);
 }

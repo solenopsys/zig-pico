@@ -7,7 +7,7 @@
 Inspired by [picohttpparser](https://github.com/h2o/picohttpparser), this is a partial translation optimized for speed and simplicity.  
 
 ### ⚡ Performance  
-- Parses **~4 million requests per second** (without SSE4)  
+- Parses **>5.2 million requests per second** (without SSE4)  
 - Outperforms the original picohttpparser (~3.2M headers/sec without SSE4)  
 - Implemented in **pure Zig**, with **zero system calls**  
 
@@ -20,6 +20,7 @@ Inspired by [picohttpparser](https://github.com/h2o/picohttpparser), this is a p
 ```sh
 zig run -O ReleaseFast bench.zig
 ```
+- Result: 5246000 RPS on AMD 8845H mobile CPU
 
 ### ✅ Run Tests  
 ```sh
