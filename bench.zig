@@ -18,10 +18,8 @@ const REQ =
     "\r\n";
 
 pub fn main() !void {
-    // Headers array
     var headers: [32]picozig.Header = undefined;
 
-    // Create HttpParams structure
     const httpParams = picozig.HttpParams{
         .method = "",
         .path = "",
@@ -30,7 +28,6 @@ pub fn main() !void {
         .bytes_read = 0,
     };
 
-    // Create HttpRequest structure
     var httpRequest = picozig.HttpRequest{
         .params = httpParams,
         .headers = &headers,
@@ -43,14 +40,8 @@ pub fn main() !void {
 
     const count = 10000000;
     for (0..count) |_| {
-        // Reset the number of headers for each iteration
         httpRequest.params.num_headers = headers.len;
-
-        // Call with new signature
         ret = picozig.parseRequest(REQ, &httpRequest);
-
-        //print header count
-        //std.debug.print("Header count: {s}\n", .{headers[0].value});
 
         std.mem.doNotOptimizeAway(ret);
         std.debug.assert(ret == REQ.len);

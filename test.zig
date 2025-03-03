@@ -5,7 +5,6 @@ const picozig = @import("./picozig.zig");
 const INCOMPELE = -2;
 const BADREQUEST = -1;
 
-// Tests for HTTP requests
 test "simple HTTP request" {
     const input = "GET / HTTP/1.0\r\n\r\n";
     var headers: [4]picozig.Header = undefined;
@@ -117,12 +116,10 @@ test "HTTP request with trailing space in header name" {
 
     const result = picozig.parseRequest(input, &httpRequest);
 
-    // Now expecting usize max (representing -1) as error code
     try testing.expectEqual(BADREQUEST, result);
 }
 
 test "invalid HTTP request - empty method" {
-    // Тест адаптирован под фактическое поведение парсера
     const input = " / HTTP/1.0\r\n\r\n";
     var headers: [4]picozig.Header = undefined;
 
@@ -147,7 +144,6 @@ test "invalid HTTP request - empty method" {
 }
 
 test "invalid HTTP request - empty target" {
-    // Тест адаптирован под фактическое поведение парсера
     const input = "GET  HTTP/1.0\r\n\r\n"; // Empty request path
     var headers: [4]picozig.Header = undefined;
 
@@ -403,7 +399,7 @@ test "HTTP request with LF line ending instead of CRLF" {
 
 test "HTTP real test" {
     const input =
-        "GET / HTTP/1.0\r\n" ++
+        "GET / HTTP/1.1\r\n" ++
         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7\r\n" ++
         "Accept-Encoding: gzip, deflate, br, zstd\r\n" ++
         "Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7\r\n" ++
@@ -439,10 +435,8 @@ test "HTTP real test" {
     try testing.expectEqual(673, result);
 
     try testing.expectEqualStrings("GET", httpRequest.params.method);
-    //std.debug.print("Path: {s}\n", .{httpRequest.params.path});
 }
 
-// // Helper function to compare buffers
 fn expectBufferEq(expected: []const u8, actual: []const u8) !void {
     try testing.expectEqual(expected.len, actual.len);
     for (expected, 0..) |b, i| {

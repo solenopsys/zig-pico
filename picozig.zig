@@ -13,16 +13,12 @@ pub const ParseError = error{
     BadRequest,
 };
 
-/// Determines if a character is printable ASCII
 inline fn isPrintableAscii(c: u8) bool {
     return (c -% 0x20) < 0x5F;
 }
 
-/// Token character map
 const token_char_map = blk: {
     var map: [256]bool = [_]bool{false} ** 256;
-
-    // Set token characters according to HTTP spec
     var i: u8 = '0';
     while (i <= '9') : (i += 1) {
         map[i] = true;
@@ -35,17 +31,13 @@ const token_char_map = blk: {
     while (i <= 'z') : (i += 1) {
         map[i] = true;
     }
-
-    // Add special characters
     const specials = "!#$%&'*+-.^_`|~";
     for (specials) |c| {
         map[c] = true;
     }
-
     break :blk map;
 };
 
-/// Gets a token until end of line
 fn getTokenToEol(buffer: []const u8) ParseError!struct { token: []const u8, rest: []const u8 } {
     var i: usize = 0;
     var found_ctl = false;
@@ -82,7 +74,6 @@ fn getTokenToEol(buffer: []const u8) ParseError!struct { token: []const u8, rest
     }
 }
 
-/// Advances to the next token
 fn advanceToken(buffer: []const u8) ParseError!struct { token: []const u8, rest: []const u8 } {
     var i: usize = 0;
     var ranges = [_]u8{ 0, ' ', 0x7F, 0x7F };
@@ -94,9 +85,6 @@ fn advanceToken(buffer: []const u8) ParseError!struct { token: []const u8, rest:
     } else {
         return ParseError.Incomplete;
     }
-
-    // Удалена проверка на пустой токен для повышения производительности
-    // Пользователь должен сам убедиться, что входящие данные корректны
 
     while (i < buffer.len) : (i += 1) {
         const c = buffer[i];
@@ -119,7 +107,6 @@ fn advanceToken(buffer: []const u8) ParseError!struct { token: []const u8, rest:
     };
 }
 
-/// Parses the HTTP version
 fn parseHttpVersion(buffer: []const u8) ParseError!struct { minor_version: i32, rest: []const u8 } {
     if (buffer.len < 8) return ParseError.Incomplete;
 
@@ -154,7 +141,6 @@ fn parseHttpVersion(buffer: []const u8) ParseError!struct { minor_version: i32, 
     };
 }
 
-/// Parses HTTP headers
 fn parseHeaders(buffer: []const u8, headers: []Header) ParseError!struct { num_headers: usize, rest: []const u8 } {
     var buf = buffer;
     var num_headers: usize = 0;
@@ -175,7 +161,6 @@ fn parseHeaders(buffer: []const u8, headers: []Header) ParseError!struct { num_h
         }
 
         if (!(num_headers != 0 and (buf[0] == ' ' or buf[0] == '\t'))) {
-            // Parse header name
             var name_start = buf;
             var name_len: usize = 0;
 
@@ -194,7 +179,6 @@ fn parseHeaders(buffer: []const u8, headers: []Header) ParseError!struct { num_h
             name_len = i;
             buf = buf[i + 1 ..];
 
-            // Skip leading whitespace in value
             i = 0;
             while (i < buf.len and (buf[i] == ' ' or buf[i] == '\t')) : (i += 1) {}
             buf = buf[i..];
@@ -208,7 +192,6 @@ fn parseHeaders(buffer: []const u8, headers: []Header) ParseError!struct { num_h
                 .value = value,
             };
         } else {
-            // Continuation line
             headers[num_headers].name = "";
 
             const token_result = try getTokenToEol(buf);
@@ -236,7 +219,6 @@ pub const HttpParams = struct {
 fn parseHttpRequest(buffer: []const u8, headers: []Header) !HttpParams {
     var buf = buffer;
 
-    // Skip first empty line (some clients add CRLF after POST content)
     if (buf.len > 0 and buf[0] == '\r' and buf.len > 1 and buf[1] == '\n') {
         buf = buf[2..];
     } else if (buf.len > 0 and buf[0] == '\n') {
@@ -245,7 +227,6 @@ fn parseHttpRequest(buffer: []const u8, headers: []Header) !HttpParams {
 
     if (buf.len == 0) return ParseError.Incomplete;
 
-    // Parse request line
     const method_result = try advanceToken(buf);
     const method = method_result.token;
     buf = method_result.rest;
@@ -258,7 +239,6 @@ fn parseHttpRequest(buffer: []const u8, headers: []Header) !HttpParams {
     const minor_version = version_result.minor_version;
     buf = version_result.rest;
 
-    // Parse headers
     const headers_result = try parseHeaders(buf, headers);
     const num_headers = headers_result.num_headers;
     buf = headers_result.rest;
@@ -278,7 +258,6 @@ pub const HttpRequest = struct {
     body: []const u8,
 };
 
-/// Parses an HTTP request using picohttp-style API
 pub fn parseRequest(
     buf: []const u8,
     httpReqest: *HttpRequest,
