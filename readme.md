@@ -18,12 +18,12 @@ Inspired by [picohttpparser](https://github.com/h2o/picohttpparser), this is a p
 
 ### 🔥 Benchmark  
 ```sh
-zig run -O ReleaseFast bench.zig
+zig run -O ReleaseFast src/request/bench.zig
 ```
 - Result: 5246000 RPS on AMD 8845H mobile CPU
 
 ### ✅ Run Tests  
 ```sh
-zig test test.zig
+zig test src/request/test.zig
 ```  
 
